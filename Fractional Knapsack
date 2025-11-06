@@ -1,0 +1,58 @@
+# Fractional Knapsack Problem (Greedy Method)
+
+def fractional_knapsack(W, weights, values):
+    n = len(values)
+
+    # Calculate value/weight ratio for each item
+    ratio = []
+    for i in range(n):
+        ratio.append((values[i] / weights[i], weights[i], values[i]))
+
+    # Sort items by ratio in descending order
+    ratio.sort(reverse=True)
+
+    total_value = 0.0
+    knapsack_items = []
+
+    for r, wt, val in ratio:
+        if W == 0:
+            break
+
+        # Take whole item
+        if wt <= W:
+            W -= wt
+            total_value += val
+            knapsack_items.append((wt, val, 1.0))  # 100% taken
+        else:
+            # Take fractional part
+            fraction = W / wt
+            total_value += val * fraction
+            knapsack_items.append((wt, val, fraction))
+            W = 0
+
+    return total_value, knapsack_items
+
+
+# Driver Code
+if __name__ == "__main__":
+    n = int(input("Enter number of items: "))
+
+    weights = []
+    values = []
+
+    print("\nEnter weight and value of each item:")
+    for i in range(n):
+        w = float(input(f"Weight of item {i+1}: "))
+        v = float(input(f"Value of item {i+1}: "))
+        weights.append(w)
+        values.append(v)
+
+    W = float(input("\nEnter capacity of knapsack: "))
+
+    max_value, selected = fractional_knapsack(W, weights, values)
+
+    print("\nItems taken (weight, value, fraction):")
+    for w, v, f in selected:
+        print(f"Weight={w}, Value={v}, Fraction taken={round(f, 2)}")
+
+    print(f"\nMaximum total value in knapsack = {max_value}")
