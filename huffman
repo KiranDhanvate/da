@@ -1,0 +1,75 @@
+import heapq
+
+# Node structure for Huffman Tree
+class Node:
+    def __init__(self, char, freq):
+        self.char = char
+        self.freq = freq
+        self.left = None
+        self.right = Non
+
+    # For priority queue (min-heap)
+    def __lt__(self, other):
+        return self.freq < other.freq
+
+
+# Generate Huffman Codes
+def generate_codes(root, code, huffman_code):
+    if root is None:
+        return
+
+    # Leaf node => character found
+    if root.char is not None:
+        huffman_code[root.char] = code
+
+    generate_codes(root.left, code + "0", huffman_code)
+    generate_codes(root.right, code + "1", huffman_code)
+
+
+# Huffman Encoding main function
+def huffman_encoding(text):
+    # Step 1: Count frequencies
+    freq = {}
+    for ch in text:
+        freq[ch] = freq.get(ch, 0) + 1
+
+    # Step 2: Create min-heap of nodes
+    heap = [Node(char, f) for char, f in freq.items()]
+    heapq.heapify(heap)
+
+    # Step 3: Build Huffman Tree (Greedy: pick 2 smallest)
+    while len(heap) > 1:
+        left = heapq.heappop(heap)
+        right = heapq.heappop(heap)
+
+        merged = Node(None, left.freq + right.freq)
+        merged.left = left
+        merged.right = right
+
+        heapq.heappush(heap, merged)
+
+    # Root of Huffman Tree
+    root = heap[0]
+
+    # Step 4: Generate Codes
+    huffman_code = {}
+    generate_codes(root, "", huffman_code)
+
+    # Step 5: Encode the text
+    encoded_text = "".join(huffman_code[ch] for ch in text)
+
+    return huffman_code, encoded_text
+
+
+# Driver
+if __name__ == "__main__":
+    text = input("Enter text to encode: ")
+
+    huff_code, encoded = huffman_encoding(text)
+
+    print("\nHuffman Codes:")
+    for ch, code in huff_code.items():
+        print(f"{ch}: {code}")
+
+    print("\nEncoded Output:")
+    print(encoded)
