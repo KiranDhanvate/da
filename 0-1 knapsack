@@ -1,0 +1,136 @@
+# # 0-1 Knapsack using Dynamic Programming
+
+# def knapsack_dp(W, wt, val, n):
+#     dp = [[0] * (W + 1) for _ in range(n + 1)]
+
+#     # Build DP table
+#     for i in range(1, n + 1):
+#         for w in range(1, W + 1):
+#             if wt[i - 1] <= w:
+#                 dp[i][w] = max(val[i - 1] + dp[i - 1][w - wt[i - 1]], dp[i - 1][w])
+#             else:
+#                 dp[i][w] = dp[i - 1][w]
+
+#     return dp[n][W]
+
+
+# # Driver Code (DP)
+# if __name__ == "__main__":
+#     n = int(input("Enter number of items: "))
+
+#     val = []
+#     wt = []
+
+#     print("\nEnter value and weight of each item:")
+#     for i in range(n):
+#         val.append(int(input(f"Value of item {i+1}: ")))
+#         wt.append(int(input(f"Weight of item {i+1}: ")))
+
+#     W = int(input("\nEnter capacity of knapsack: "))
+
+#     print("\nMaximum value (DP) =", knapsack_dp(W, wt, val, n))
+    
+    
+    
+# ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+import heapq
+
+# Node representation for B&B
+class Node:
+    def __init__(self, level, profit, weight, bound):
+        self.level = level
+        self.profit = profit
+        self.weight = weight
+        self.bound = bound
+
+    def __lt__(self, other):
+        return self.bound > other.bound  # max-heap
+
+
+# Bound function (upper bound)
+def bound(node, n, W, wt, val):
+    if node.weight >= W:
+        return 0
+
+    profit_bound = node.profit
+    j = node.level + 1
+    totweight = node.weight
+
+    # Add items while weight allows
+    while j < n and totweight + wt[j] <= W:
+        totweight += wt[j]
+        profit_bound += val[j]
+        j += 1
+
+    # Add fractional part of next item
+    if j < n:
+        profit_bound += (W - totweight) * (val[j] / wt[j])
+
+    return profit_bound
+
+
+# Branch & Bound Knapsack
+def knapsack_bb(W, wt, val, n):
+    # Sort by value/weight ratio
+    items = sorted(zip(val, wt), key=lambda x: x[0]/x[1], reverse=True)
+    val = [x[0] for x in items]
+    wt = [x[1] for x in items]
+
+    queue = []
+    u = Node(-1, 0, 0, 0)
+    v = Node(0, 0, 0, 0)
+
+    max_profit = 0
+    u.bound = bound(u, n, W, wt, val)
+
+    heapq.heappush(queue, u)
+
+    while queue:
+        u = heapq.heappop(queue)
+
+        if u.bound > max_profit:
+            v.level = u.level + 1
+
+            # Case 1: Take item
+            v.weight = u.weight + wt[v.level]
+            v.profit = u.profit + val[v.level]
+
+            if v.weight <= W and v.profit > max_profit:
+                max_profit = v.profit
+
+            v.bound = bound(v, n, W, wt, val)
+            if v.bound > max_profit:
+                heapq.heappush(queue, Node(v.level, v.profit, v.weight, v.bound))
+
+            # Case 2: Don't take item
+            v.weight = u.weight
+            v.profit = u.profit
+            v.bound = bound(v, n, W, wt, val)
+
+            if v.bound > max_profit:
+                heapq.heappush(queue, Node(v.level, v.profit, v.weight, v.bound))
+
+    return max_profit
+
+
+# Driver (Branch & Bound)
+if __name__ == "__main__":
+    n = int(input("Enter number of items: "))
+
+    val = []
+    wt = []
+
+    print("\nEnter value and weight of each item:")
+    for i in range(n):
+        val.append(int(input(f"Value of item {i+1}: ")))
+        wt.append(int(input(f"Weight of item {i+1}: ")))
+
+    W = int(input("\nEnter capacity of knapsack: "))
+
+    print("\nMaximum value (Branch & Bound) =", knapsack_bb(W, wt, val, n))
+
+    
+    
